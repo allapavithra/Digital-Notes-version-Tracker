@@ -1,0 +1,135 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="notes-header">
+    <h2>Compare Versions</h2>
+    <a href="{{ url_for('timeline', note_id=note.id) }}" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Back
+        to History</a>
+</div>
+
+{% if show_selectors %}
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--text-primary);">Compare Saved Versions</h3>
+    <form method="POST" action=""
+        style="display: flex; gap: 1rem; align-items: flex-end; margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--border-color);">
+        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+            <label>Older Version (Left)</label>
+            <select name="v1" class="form-control" required style="background: rgba(15, 23, 42, 0.9);">
+                {% for v in all_versions %}
+                <option value="{{ v.id }}" {% if selected_v1==v.id %}selected{% endif %}>
+                    Version {{ v.version_num }} ({{ v.created_at.strftime('%Y-%m-%d %H:%M') }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="padding-bottom: 0.8rem; color: var(--text-secondary);">
+            <i class="fas fa-exchange-alt"></i>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+            <label>Newer Version (Right)</label>
+            <select name="v2" class="form-control" required style="background: rgba(15, 23, 42, 0.9);">
+                {% for v in all_versions|reverse %}
+                <option value="{{ v.id }}" {% if selected_v2==v.id %}selected{% endif %}>
+                    Version {{ v.version_num }} ({{ v.created_at.strftime('%Y-%m-%d %H:%M') }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-bottom: 0;">Compare</button>
+    </form>
+
+    <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--success);">Upload Document to Compare</h3>
+    <form method="POST" action="" enctype="multipart/form-data"
+        style="display: flex; gap: 1rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+            <label>Base Version</label>
+            <select name="base_version" class="form-control" required style="background: rgba(15, 23, 42, 0.9);">
+                {% for v in all_versions %}
+                <option value="{{ v.id }}" {% if selected_v1==v.id %}selected{% endif %}>
+                    Version {{ v.version_num }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div style="padding-bottom: 0.8rem; color: var(--text-secondary);">
+            <i class="fas fa-file-upload"></i>
+        </div>
+        <div class="form-group" style="margin-bottom: 0; flex: 1;">
+            <label>Upload File (.txt, .pdf, .docx)</label>
+            <input type="file" name="file" class="form-control" accept=".txt,.pdf,.docx" required
+                style="background: rgba(15, 23, 42, 0.9); padding: 0.5rem; height: auto;">
+        </div>
+        <button type="submit" class="btn btn-success" style="margin-bottom: 0;">Upload & Compare</button>
+    </form>
+</div>
+{% endif %}
+
+{% if diff_result %}
+<!-- Summary Box -->
+<div class="summary-box animate">
+    <div class="summary-card">
+        <h3><i class="fas fa-chart-pie" style="color: var(--primary);"></i> Change Summary</h3>
+        <ul class="stat-list">
+            {% for msg in diff_result.summary %}
+            <li>
+                {% if 'added' in msg %}<span
+                    style="color: var(--success); font-weight: 500; margin-right: 0.5rem;">+</span>{% endif %}
+                {% if 'deleted' in msg %}<span
+                    style="color: var(--danger); font-weight: 500; margin-right: 0.5rem;">-</span>{% endif %}
+                {% if 'modified' in msg %}<span
+                    style="color: var(--warning); font-weight: 500; margin-right: 0.5rem;">~</span>{% endif %}
+                {{ msg }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="summary-card">
+        <h3><i class="fas fa-key" style="color: var(--warning);"></i> Key Topics Added/Modified</h3>
+        {% if diff_result.added_topics %}
+        <div class="chips">
+            {% for tag in diff_result.added_topics %}
+            <span class="chip">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p style="color: var(--text-secondary); margin-top: 1rem;">No major new topics detected.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Side-by-side Table -->
+<div class="diff-table-container animate" style="animation-delay: 0.2s;">
+    <table class="diff-table">
+        <thead>
+            <tr>
+                <th colspan="2" style="width: 50%;">{{ v1_display|safe }}</th>
+                <th colspan="2" style="width: 50%;">{{ v2_display|safe }}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lnum, lline, lclass, rnum, rline, rclass in diff_result.diff %}
+            <tr>
+                <td class="line-num {{ lclass }}">{{ lnum }}</td>
+                <td class="diff-line {{ lclass }}">{{ lline|safe }}</td>
+                <td class="line-num {{ rclass }}">{{ rnum }}</td>
+                <td class="diff-line {{ rclass }}">{{ rline|safe }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div
+    style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center; justify-content: center; font-size: 0.9rem; color: var(--text-secondary);">
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+        <div style="width:16px; height:16px; background:rgba(34,197,94,0.2); border-radius:4px;"></div> Added
+    </div>
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+        <div style="width:16px; height:16px; background:rgba(239,68,68,0.2); border-radius:4px;"></div> Removed
+    </div>
+    <div style="display:flex; align-items:center; gap:0.5rem;">
+        <div style="width:16px; height:16px; background:rgba(234,179,8,0.2); border-radius:4px;"></div> Modified
+    </div>
+</div>
+{% endif %}
+{% endblock %}

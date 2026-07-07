@@ -1,0 +1,95 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="notes-header">
+    <h2>History: {{ note.title }}</h2>
+    <div>
+        <a href="{{ url_for('edit_note', note_id=note.id) }}" class="btn btn-outline"><i class="fas fa-edit"></i> Edit
+            Latest</a>
+        {% if note.versions|length > 1 %}
+        <a href="{{ url_for('compare', note_id=note.id) }}" class="btn btn-primary"><i class="fas fa-exchange-alt"></i>
+            Compare Versions</a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="version-dashboard-layout">
+    <div class="glass-card version-table-container" style="padding: 0.5rem 1.5rem 1.5rem;">
+        <table class="version-table">
+            <thead>
+                <tr>
+                    <th>Version</th>
+                    <th>Document</th>
+                    <th>Created Date</th>
+                    <th>Size (Est.)</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in versions %}
+                <tr class="animate" style="animation-delay: {{ loop.index0 * 0.1 }}s">
+                    <td>
+                        <strong style="color: var(--text-primary);">v{{ v.version_num }}</strong>
+                        {% if loop.first %}
+                        <span class="chip" style="font-size: 0.65rem; padding: 0.1rem 0.5rem; margin-left: 0.5rem; background: rgba(16, 185, 129, 0.2); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3);">Latest</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight: 500;">{{ note.title }}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.9rem;">{{ v.created_at.strftime('%b %d, %Y, %I:%M %p') }}</td>
+                    <td style="color: var(--text-secondary); font-size: 0.9rem;">
+                        {% set size_kb = (v.content|length / 1024)|round(1) %}
+                        {% if size_kb > 0 %}{{ size_kb }} KB{% else %} &lt; 0.1 KB {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-buttons" style="display: flex; gap: 0.5rem;">
+                            <button type="button" class="btn btn-outline btn-sm action-btn" onclick="togglePreview('preview-{{ loop.index }}')" title="Toggle Content View">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                            <a href="data:text/plain;charset=utf-8,{{ v.content|urlencode }}" download="{{ note.title }}_v{{ v.version_num }}.txt" class="btn btn-outline btn-sm action-btn" title="Download text format">
+                                <i class="fas fa-download"></i>
+                            </a>
+                            {% if not loop.first %}
+                            <a href="{{ url_for('restore', note_id=note.id, version_id=v.id) }}" class="btn btn-outline btn-sm action-btn" style="color: var(--warning); border-color: rgba(245, 158, 11, 0.3);" onclick="return confirm('Are you sure you want to restore this version? This will create a new version.');" title="Restore this version">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                <tr id="preview-{{ loop.index }}" style="display: none;">
+                    <td colspan="5" style="padding: 0; border-bottom: 1px solid rgba(51, 65, 85, 0.4);">
+                        <div class="note-preview-embedded" style="margin: 0.5rem 1rem 1.5rem; padding: 1.5rem; border-radius: 8px; font-family: monospace; font-size: 0.9rem; max-height: 250px; overflow-y: auto; background: rgba(15, 23, 42, 0.6); border: 1px solid var(--border-color); color: var(--text-secondary); white-space: pre-wrap; line-height: 1.6;">{{ v.content }}</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mini Timeline Sidebar -->
+    <div class="glass-card mini-timeline-container" style="padding: 1.5rem; align-self: start;">
+        <h4 style="margin-bottom: 2rem; color: var(--text-secondary); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; border-bottom: 1px solid var(--border-color); padding-bottom: 0.8rem;">Version Progression</h4>
+        <div class="mini-timeline">
+            {% for v in versions %}
+            <div class="mini-timeline-item {% if loop.first %}active{% endif %}">
+                <div class="mini-dot"></div>
+                <div class="mini-content">
+                    <div style="font-weight: 600; font-size: 0.95rem; color: {% if loop.first %}var(--success){% else %}var(--text-primary){% endif %};">v{{ v.version_num }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.2rem;">{{ v.created_at.strftime('%b %d, %I:%M %p') }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePreview(id) {
+        var el = document.getElementById(id);
+        if (el.style.display === "none") {
+            el.style.display = "table-row";
+        } else {
+            el.style.display = "none";
+        }
+    }
+</script>
+{% endblock %}

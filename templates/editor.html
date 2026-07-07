@@ -1,0 +1,35 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="glass-card">
+    <h2 style="margin-bottom: 1.5rem;">{{ title }}</h2>
+    <form method="POST" action="" enctype="multipart/form-data">
+        <div class="form-group">
+            <label>Note Title</label>
+            <input type="text" name="title" class="form-control" required
+                value="{{ note.title if note else (note_title if note_title else '') }}">
+        </div>
+
+        <div class="upload-section">
+            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: var(--primary);"></i>
+            <div>
+                <strong>Upload existing document</strong> (Optional)<br>
+                <span style="font-size: 0.85rem; color: var(--text-secondary);">Supported formats: .txt, .pdf, .docx.
+                    Uploading will override the text below.</span>
+            </div>
+            <input type="file" name="file" accept=".txt,.pdf,.docx" style="margin-left: auto;">
+        </div>
+
+        <div class="form-group">
+            <label>Content</label>
+            <textarea name="content" class="form-control" {% if not note %}required{% endif
+                %}>{{ content if content else '' }}</textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem;">
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save {% if note %}Version{% endif
+                %} </button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-outline">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="notes-header">
+    <h2>Your Notes</h2>
+    <a href="{{ url_for('new_note') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Create Note</a>
+</div>
+
+{% if notes %}
+<div class="notes-grid">
+    {% for note in notes %}
+    <div class="note-card">
+        <h3>{{ note.title }}</h3>
+        <div class="note-meta">
+            <i class="far fa-clock"></i> Last updated: {{ note.latest_version.created_at.strftime('%Y-%m-%d %H:%M')
+            }}<br>
+            <i class="fas fa-code-branch"></i> {{ note.version_count }} Versions
+        </div>
+        <div class="note-preview">
+            {{ note.latest_version.content[:100] + '...' if note.latest_version.content|length > 100 else
+            note.latest_version.content }}
+        </div>
+        <div class="note-actions">
+            <a href="{{ url_for('edit_note', note_id=note.id) }}" class="btn btn-outline btn-sm"><i
+                    class="fas fa-edit"></i> Edit</a>
+            <a href="{{ url_for('timeline', note_id=note.id) }}" class="btn btn-outline btn-sm"><i
+                    class="fas fa-history"></i> History</a>
+            {% if note.version_count > 1 %}
+            <a href="{{ url_for('compare', note_id=note.id) }}" class="btn btn-primary btn-sm"><i
+                    class="fas fa-exchange-alt"></i> Compare</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="glass-card" style="text-align: center; padding: 4rem 2rem;">
+    <i class="fas fa-file-alt" style="font-size: 4rem; color: var(--text-secondary); margin-bottom: 1rem;"></i>
+    <h3>No notes yet</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Create your first note or upload a document to get
+        started.</p>
+    <a href="{{ url_for('new_note') }}" class="btn btn-primary">Create Note</a>
+</div>
+{% endif %}
+{% endblock %}

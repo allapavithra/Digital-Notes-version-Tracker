@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <header class="page-header">
+        <h1>Your Notes</h1>
+        <p>Manage, track, and restore your digital notes.</p>
+    </header>
+
+    <div class="upload-section card">
+        <h3>Upload Note (.txt)</h3>
+        <form action="{{ url_for('upload_note') }}" method="POST" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="file" accept=".txt" required class="file-input">
+            <button type="submit" class="btn btn-secondary">Upload</button>
+        </form>
+    </div>
+
+    <div class="notes-grid">
+        {% for note in notes %}
+        <div class="note-card card">
+            <h3 class="note-title">{{ note.title }}</h3>
+            <p class="note-meta">Last updated: {{ note.updated_at }}</p>
+            <div class="note-actions">
+                <a href="{{ url_for('view_note', id=note.id) }}" class="btn btn-sm btn-primary">Edit</a>
+                <a href="{{ url_for('note_history', id=note.id) }}" class="btn btn-sm btn-outline">History</a>
+            </div>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No notes found. Create a new one or upload a .txt file.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

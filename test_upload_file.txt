@@ -1,0 +1,2 @@
+This is a freshly uploaded note testing the new built-in upload feature.
+It should automatically set the title and content!

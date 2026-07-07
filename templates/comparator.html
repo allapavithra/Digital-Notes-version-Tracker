@@ -1,0 +1,155 @@
+{% extends 'layout.html' %}
+{% block content %}
+<div class="notes-header">
+    <h2>Advanced Notes Comparator and Editor</h2>
+    <span style="color: var(--text-secondary);">Upload two documents to structurally compare them, or insert lines
+        directly to download!</span>
+</div>
+
+<div class="glass-card" style="margin-bottom: 2rem;">
+    <form method="POST" action="" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="compare">
+        <div style="display: flex; gap: 2rem; align-items: flex-start; margin-bottom: 1.5rem;">
+            <div class="form-group" style="flex: 1;">
+                <label style="color: var(--text-primary); font-weight: 500;"><i
+                        class="fas fa-file-upload text-primary"></i> Original Note (Note A)</label>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Upload .txt, .pdf,
+                    or .docx</p>
+                <input type="file" name="file1" class="form-control" accept=".txt,.pdf,.docx" required>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label style="color: var(--text-primary); font-weight: 500;"><i
+                        class="fas fa-file-upload text-success"></i> Updated Note (Note B)</label>
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.5rem;">Upload .txt, .pdf,
+                    or .docx</p>
+                <input type="file" name="file2" class="form-control" accept=".txt,.pdf,.docx" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 0.8rem;"><i
+                class="fas fa-balance-scale"></i> Compare Notes</button>
+    </form>
+</div>
+
+{% if diff_result %}
+<!-- Overall Similarity Score -->
+<div class="glass-card animate"
+    style="margin-bottom: 1.5rem; text-align: center; border: 2px dashed rgba(255, 255, 255, 0.1);">
+    <h2 style="color: var(--text-primary); margin: 0; font-size: 1.8rem;">
+        Overall Similarity: <span style="color: var(--primary);">{{ diff_result.overall_similarity }}%</span>
+    </h2>
+</div>
+
+<!-- 1. Summary Section -->
+<div class="glass-card animate" style="margin-bottom: 1.5rem; border-left: 4px solid var(--primary);">
+    <h3 style="color: var(--primary); margin-bottom: 1rem;">Summary</h3>
+    <ul style="list-style-type: none; font-size: 1.1rem;">
+        <li><strong style="color: var(--success);">{{ diff_result.summary.added }}</strong> lines added</li>
+        <li><strong style="color: var(--danger);">{{ diff_result.summary.removed }}</strong> lines removed</li>
+        <li><strong style="color: var(--warning);">{{ diff_result.summary.modified }}</strong> lines modified</li>
+    </ul>
+</div>
+
+<!-- 2. Added Lines -->
+<div class="glass-card animate"
+    style="margin-bottom: 1.5rem; animation-delay: 0.1s; border-left: 4px solid var(--success);">
+    <h3 style="color: var(--success); margin-bottom: 1rem;">Added Lines</h3>
+    {% if diff_result.added %}
+    <ul style="list-style-type: none; padding: 0;">
+        {% for lnum, content in diff_result.added %}
+        <li
+            style="margin-bottom: 0.5rem; font-family: monospace; background: rgba(34, 197, 94, 0.1); padding: 0.5rem; border-radius: 4px;">
+            <strong style="color: var(--text-secondary); margin-right: 0.8rem;">Line {{ lnum }}:</strong> "{{ content
+            }}"
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-secondary);">No lines added.</p>
+    {% endif %}
+</div>
+
+<!-- 3. Removed Lines -->
+<div class="glass-card animate"
+    style="margin-bottom: 1.5rem; animation-delay: 0.2s; border-left: 4px solid var(--danger);">
+    <h3 style="color: var(--danger); margin-bottom: 1rem;">Removed Lines</h3>
+    {% if diff_result.removed %}
+    <ul style="list-style-type: none; padding: 0;">
+        {% for lnum, content in diff_result.removed %}
+        <li
+            style="margin-bottom: 0.5rem; font-family: monospace; background: rgba(239, 68, 68, 0.1); padding: 0.5rem; border-radius: 4px;">
+            <strong style="color: var(--text-secondary); margin-right: 0.8rem;">Line {{ lnum }}:</strong> "{{ content
+            }}"
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-secondary);">No lines removed.</p>
+    {% endif %}
+</div>
+
+<!-- 4. Modified Lines -->
+<div class="glass-card animate"
+    style="margin-bottom: 1.5rem; animation-delay: 0.3s; border-left: 4px solid var(--warning);">
+    <h3 style="color: var(--warning); margin-bottom: 1rem;">Modified Lines</h3>
+    {% if diff_result.modified %}
+    <ul style="list-style-type: none; padding: 0;">
+        {% for lnum, old_content, new_content, confidence in diff_result.modified %}
+        <li
+            style="margin-bottom: 1rem; font-family: monospace; background: rgba(234, 179, 8, 0.05); padding: 0.8rem; border-radius: 4px; border: 1px dashed rgba(234, 179, 8, 0.3);">
+            <div style="margin-bottom: 0.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.3rem;">
+                <strong style="color: var(--warning);">Line {{ lnum }}:</strong>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-bottom: 0.5rem;">
+                <div style="flex: 1; color: var(--danger);"><strong>Old:</strong> "{{ old_content }}"</div>
+                <div style="flex: 1; color: var(--success);"><strong>New:</strong> "{{ new_content }}"</div>
+            </div>
+            <div style="padding-top: 0.5rem; font-size: 0.95em;">
+                <strong style="color: var(--primary);">Confidence Score:</strong> {{ confidence }}%
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p style="color: var(--text-secondary);">No lines modified.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- 5. Editor / Line Insertion Feature -->
+<div class="notes-header" style="margin-top: 3rem;">
+    <h2>Regenerate / Insert Document</h2>
+    <span style="color: var(--text-secondary);">Dynamically insert a new line formatting exactly into your document and
+        download instantly.</span>
+</div>
+
+<div class="glass-card animate" style="margin-bottom: 2rem;">
+    <form method="POST" action="" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="insert">
+
+        <div style="display: flex; gap: 1rem; align-items: flex-start; margin-bottom: 1.5rem;">
+            <div class="form-group" style="flex: 1.5;">
+                <label style="color: var(--text-primary);"><i class="fas fa-file-invoice"></i> Action File (.txt, .pdf,
+                    .docx, .xlsx)</label>
+                <input type="file" name="file_edit" class="form-control" accept=".txt,.pdf,.docx,.xlsx" required>
+            </div>
+
+            <div class="form-group" style="flex: 1;">
+                <label style="color: var(--text-primary);"><i class="fas fa-list-ol"></i> Line No. (Insert At)</label>
+                <input type="number" name="line_num" class="form-control" min="1" required placeholder="e.g. 4">
+            </div>
+
+            <div class="form-group" style="flex: 2.5;">
+                <label style="color: var(--text-primary);"><i class="fas fa-pen"></i> New Content Text</label>
+                <input type="text" name="line_content" class="form-control" required
+                    placeholder='Example: "Indexing improves performance."'>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-success" style="width: 100%; font-size: 1.1rem; padding: 0.8rem;">
+            <i class="fas fa-cloud-download-alt"></i> Insert Line & Download Updated File
+        </button>
+    </form>
+</div>
+{% endblock %}

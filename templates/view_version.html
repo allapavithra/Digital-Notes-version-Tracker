@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="view-version-container card">
+    <div class="version-header">
+        <div class="header-left">
+            <h2>{{ note.title }} - Version {{ version.version_number }}</h2>
+            <span class="text-muted">Saved on: {{ version.created_at }}</span>
+        </div>
+        <div class="header-right">
+            <a href="{{ url_for('note_history', id=note.id) }}" class="btn btn-sm btn-outline">&larr; Back to
+                History</a>
+            <form action="{{ url_for('restore_version', id=note.id, version=version.version_number) }}" method="POST"
+                class="inline-form" onsubmit="return confirm('Restore this version?');">
+                <button type="submit" class="btn btn-sm btn-primary">Restore This Version</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="version-content-viewer">
+        <pre class="content-pre">{{ version.content }}</pre>
+    </div>
+</div>
+{% endblock %}
